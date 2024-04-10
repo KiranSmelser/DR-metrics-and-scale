@@ -1,0 +1,3 @@
+mds umap tsne
+umap tsne mds
+umap mds tsne
