@@ -36,9 +36,12 @@ def main():
         mds_stresses = evaluate_scaling(fit_mds, X, scalars)
 
         # Random Projection
-        transformer = random_projection.GaussianRandomProjection(
-            n_components=2, random_state=42)
-        fit_random = transformer.fit_transform(X)
+        # transformer = random_projection.GaussianRandomProjection(
+        #     n_components=2, random_state=42)
+        # fit_random = transformer.fit_transform(X)
+        
+        #We actually wanted something a little less sophisticated
+        fit_random = np.random.uniform(0,1, size=(X.shape[0], 2))
         random_stresses = evaluate_scaling(fit_random, X, scalars)
 
         # Save results
