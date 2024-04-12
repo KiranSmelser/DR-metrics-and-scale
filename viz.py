@@ -23,7 +23,7 @@ scores of the dimensionality reduction techniques within an "interesting" range.
     return rankings
 
 
-def summary_plot(scalars, sheppard, techniques, dataset):
+def summary_plot(scalars, shepard, techniques, dataset):
     """Function that creates a summary plot used to compared the different 
 dimensionality reduction techniques."""
     tsne_data = pd.DataFrame({
@@ -59,15 +59,15 @@ dimensionality reduction techniques."""
     plt.xlabel('Scalar')
     plt.ylabel('Normalized Stress')
 
-    # Points where the Sheppard Goodness correlation coefficients fall
-    tsne_point, = plt.plot(sheppard[0], techniques['tsne'][1][np.argmin(
-        np.abs(scalars - sheppard[0]))], 'x', color='blue', markersize=15)
-    umap_point, = plt.plot(sheppard[1], techniques['umap'][1][np.argmin(
-        np.abs(scalars - sheppard[1]))], 'x', color='orange', markersize=15)
-    mds_point, = plt.plot(sheppard[2], techniques['mds'][1][np.argmin(
-        np.abs(scalars - sheppard[2]))], 'x', color='green', markersize=15)
-    random_point, = plt.plot(sheppard[2], techniques['random'][1][np.argmin(
-        np.abs(scalars - sheppard[2]))], 'x', color='red', markersize=15)
+    # Points where the shepard Goodness correlation coefficients fall
+    tsne_point, = plt.plot(shepard[0], techniques['tsne'][1][np.argmin(
+        np.abs(scalars - shepard[0]))], 'x', color='blue', markersize=15)
+    umap_point, = plt.plot(shepard[1], techniques['umap'][1][np.argmin(
+        np.abs(scalars - shepard[1]))], 'x', color='orange', markersize=15)
+    mds_point, = plt.plot(shepard[2], techniques['mds'][1][np.argmin(
+        np.abs(scalars - shepard[2]))], 'x', color='green', markersize=15)
+    random_point, = plt.plot(shepard[2], techniques['random'][1][np.argmin(
+        np.abs(scalars - shepard[2]))], 'x', color='red', markersize=15)
 
     # Initial order
     initial_scalar_index = np.argmin(np.abs(scalars - 1))
@@ -80,8 +80,8 @@ dimensionality reduction techniques."""
     ranking_str = "\n" + \
         "\n".join(
             [f"{i+1}. {initial_ranking[i]}" for i in range(len(initial_ranking))])
-    plt.annotate(f'Initial Ranking: {ranking_str}', xy=(1, 0.5), xycoords='axes fraction',
-                 xytext=(1/max(scalars)-.015, .7), textcoords='axes fraction',
+    plt.annotate(f'Initial Ranking: {ranking_str}', xy=(1, 0.2), xycoords='axes fraction',
+                 xytext=(1/max(scalars)-.015, .2), textcoords='axes fraction',
                  bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
 
     # Check for changes in the order
@@ -98,17 +98,11 @@ dimensionality reduction techniques."""
                     [f"{j+1}. {current_ranking[j]}" for j in range(len(current_ranking))])
             plt.axvline(x=scalars[i], color='grey', linestyle='--')
             plt.annotate(f'Ranking when scaled by {scalars[i]:.2f}: {ranking_str}',
-                         xy=(scalars[i], np.mean([techniques['tsne'][0][i],
-                                                  techniques['umap'][0][i],
-                                                  techniques['mds'][0][i],
-                                                  techniques['random'][0][i]])),
-                         xytext=(scalars[i],
-                                 np.mean([techniques['tsne'][1][i],
-                                          techniques['umap'][1][i],
-                                          techniques['mds'][1][i],
-                                          techniques['random'][1][i]])
-                                 * annotations),
-                         textcoords=('data'),
+                         xy=(1, .1 * annotations),
+                         xycoords='axes fraction',
+                         xytext=(scalars[i]/max(scalars),
+                                 .12 * annotations),
+                         textcoords=('axes fraction'),
                          bbox=dict(facecolor='white',
                                    edgecolor='black',
                                    boxstyle='round,pad=0.5'))
@@ -117,8 +111,8 @@ dimensionality reduction techniques."""
 
     handles, labels = plt.gca().get_legend_handles_labels()
     handles.extend([tsne_point, umap_point, mds_point, random_point])
-    labels.extend(['t-SNE Sheppard Scalar',
-                  'UMAP Sheppard Scalar', 'MDS Sheppard Scalar', 'Random Sheppard Scalar'])
+    labels.extend(['t-SNE shepard Scalar',
+                  'UMAP shepard Scalar', 'MDS shepard Scalar', 'Random shepard Scalar'])
     plt.legend(handles=handles, labels=labels)
     plt.savefig(f'{dataset}/summary_plot.png')
     plt.clf()

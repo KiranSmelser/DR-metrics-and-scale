@@ -41,4 +41,38 @@ def load_datasets():
     X, Y = datasets.make_s_curve(n_samples=200)
     datasets_dict['s_curve'] = (X, Y)
 
+    # Load the bank dataset
+    X, Y = pd.read_csv('../data/bank/X.csv'), pd.read_csv('../data/bank/Y.csv')
+    datasets_dict['bank'] = (X, Y)
+
+    # Load the CNAE-9 dataset
+    X, Y = pd.read_csv(
+        '../data/cnae-9/X.csv'), pd.read_csv('../data/cnae-9/Y.csv')
+    datasets_dict['cnae9'] = (X, Y)
+
+    # Load the COIL-20 dataset
+    X, Y = pd.read_csv(
+        '../data/coil-20/X.csv'), pd.read_csv('../data/coil-20/Y.csv')
+    datasets_dict['coil20'] = (X, Y)
+
+    # Load the Epileptic Seizure Recognition dataset
+    X, Y = pd.read_csv(
+        '../data/epileptic/X.csv'), pd.read_csv('../data/epileptic/Y.csv')
+    datasets_dict['epilepsy'] = (X, Y)
+
+    # Load the Spambase dataset
+    X, Y = pd.read_csv(
+        '../data/spambase/X.csv'), pd.read_csv('../data/spambase/Y.csv')
+    datasets_dict['spambase'] = (X, Y)
+
+    # Load the Human Activity Recognition Using Smartphones dataset
+    X, Y = pd.read_csv(
+        '../data/har/X.csv'), pd.read_csv('../data/har/Y.csv')
+    datasets_dict['har'] = (X, Y)
+
+    # Load the Sentiment Labelled Sentences dataset
+    X, Y = pd.read_csv(
+        '../data/sentiment/X.csv'), pd.read_csv('../data/sentiment/Y.csv')
+    datasets_dict['sentiment'] = (X, Y)
+
     return datasets_dict
