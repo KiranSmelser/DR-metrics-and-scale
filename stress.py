@@ -13,7 +13,7 @@ def normalized_stress(D_high, D_low):
     denom = D_high**2
     term = np.divide(num, denom, out=np.zeros_like(num), where=denom != 0)
     _sum = np.sum(term)
-    return _sum
+    return _sum / 2
 
 
 def evaluate_scaling(X_high, X_low, scalars):
