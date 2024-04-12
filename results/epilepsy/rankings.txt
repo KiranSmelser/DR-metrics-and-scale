@@ -1,0 +1,6 @@
+tsne umap mds random
+mds random tsne umap
+mds random umap tsne
+mds tsne umap random
+tsne mds umap random
+random mds umap tsne
