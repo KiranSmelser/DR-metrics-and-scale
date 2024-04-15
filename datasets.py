@@ -76,3 +76,10 @@ def load_datasets():
     datasets_dict['sentiment'] = (X, Y)
 
     return datasets_dict
+
+def find_range(dataset):
+    ranges = pd.read_excel('ranges.xlsx')
+    max = ranges.loc[ranges['dataset'] == dataset, 'max'].iloc[0]
+    if max < 1:
+        return 1.1
+    return max + 0.1

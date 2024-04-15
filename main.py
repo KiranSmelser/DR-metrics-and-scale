@@ -12,10 +12,12 @@ from viz import *
 
 def main():
     datasets_dict = load_datasets()
-    range = 2
-    scalars = np.linspace(0.0, range, 200)
 
     for dataset_name, (X, Y) in datasets_dict.items():
+        range = find_range(dataset_name)
+        scalars = np.linspace(0.0, range, int(range*100))
+
+
         # Min-Max normalization
         X = MinMaxScaler().fit_transform(X)
 
@@ -37,9 +39,7 @@ def main():
         mds_stresses = evaluate_scaling(fit_mds, X, scalars)
 
         # Random Projection
-        transformer = random_projection.GaussianRandomProjection(
-            n_components=2)
-        fit_random = transformer.fit_transform(X)
+        fit_random = np.random.uniform(0, 1, size=(X.shape[0], 2))
         random_stresses = evaluate_scaling(fit_random, X, scalars)
 
         # Save results
@@ -77,8 +77,9 @@ def main():
                    shepard_scalars_stresses)
         np.savetxt(f'{dataset_name}/shepard_corrs.txt', shepard_corrs)
         np.savetxt(f'{dataset_name}/rankings.txt', list(rankings), fmt='%s')
-        np.savetxt(f'{dataset_name}/min_stresses.txt',
-                   find_min_stress(results))
+        np.savetxt(f'{dataset_name}/min_stresses_and_scalars.txt',
+                   np.array([find_min_stress_exact(fit, X) for algo, (fit, stresses) in results.items()]))
+        np.savetxt(f'{dataset_name}/min_stresses.txt', find_min_stress(results))
         np.savetxt(f'{dataset_name}/optimal_scalars.txt',
                    find_optimal_scalars(scalars, results))
 
