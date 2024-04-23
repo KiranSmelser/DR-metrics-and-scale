@@ -1,7 +1,8 @@
+import numpy as np
 import pandas as pd
 from sklearn import datasets
 import seaborn as sns
-
+from tensorflow.keras.datasets import mnist, fashion_mnist
 
 
 def load_datasets():
@@ -20,8 +21,9 @@ def load_datasets():
     datasets_dict['swiss_roll'] = (X, Y)
 
     # Load penguins dataset
-    data = sns.load_dataset('penguins').dropna(thresh = 6)
-    cols_num = ['bill_length_mm', 'bill_depth_mm', 'flipper_length_mm', 'body_mass_g']
+    data = sns.load_dataset('penguins').dropna(thresh=6)
+    cols_num = ['bill_length_mm', 'bill_depth_mm',
+                'flipper_length_mm', 'body_mass_g']
     X = data[cols_num]
     Y = data['species'].astype('category').cat.codes
     datasets_dict['penguins'] = (X, Y)
@@ -29,11 +31,13 @@ def load_datasets():
     # Load auto-mpg dataset
     url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data'
     data = pd.read_csv(url, delim_whitespace=True)
-    data.columns = ['mpg', 'cylinders', 'displacement', 'horsepower', 'weight', 'acceleration', 'model_year', 'origin', 'car_name']
+    data.columns = ['mpg', 'cylinders', 'displacement', 'horsepower',
+                    'weight', 'acceleration', 'model_year', 'origin', 'car_name']
     data.horsepower = pd.to_numeric(data.horsepower, errors='coerce')
     data = data.drop(['model_year', 'origin', 'car_name'], axis=1)
     data = data[data.horsepower.notnull()]
-    X = data[['acceleration', 'cylinders', 'displacement', 'horsepower', 'weight']]
+    X = data[['acceleration', 'cylinders',
+              'displacement', 'horsepower', 'weight']]
     Y = data['mpg']
     datasets_dict['auto_mpg'] = (X, Y)
 
@@ -76,6 +80,39 @@ def load_datasets():
     datasets_dict['sentiment'] = (X, Y)
 
     return datasets_dict
+
+
+def load_big_datasets():
+    datasets_dict = {}
+
+    # Load the MNIST dataset
+    (X_mnist, y_mnist), _ = mnist.load_data()
+
+    # Flatten the images and normalize to the range [0, 1]
+    X_mnist = X_mnist.reshape((X_mnist.shape[0], -1)) / 255.
+
+    # Randomly select 10000 samples from the dataset
+    indices_mnist = np.random.choice(
+        X_mnist.shape[0], size=10000, replace=False)
+
+    X, Y = X_mnist[indices_mnist], y_mnist[indices_mnist]
+    datasets_dict['mnist'] = (X, Y)
+
+    # Load the Fashion MNIST dataset
+    (X_fmnist, y_fmnist), _ = fashion_mnist.load_data()
+
+    # Flatten the images and normalize to the range [0, 1]
+    X_fmnist = X_fmnist.reshape((X_fmnist.shape[0], -1)) / 255.
+
+    # Randomly select 10000 samples from the dataset
+    indices_fmnist = np.random.choice(
+        X_fmnist.shape[0], size=10000, replace=False)
+
+    X, Y = X_fmnist[indices_fmnist], y_fmnist[indices_fmnist]
+    datasets_dict['fmnist'] = (X, Y)
+
+    return datasets_dict
+
 
 def find_range(dataset):
     ranges = pd.read_excel('ranges.xlsx')
