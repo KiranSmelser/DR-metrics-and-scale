@@ -10,14 +10,16 @@ def load_datasets():
 
     # Load iris dataset
     data = datasets.load_iris()
-    datasets_dict['iris'] = (data.data, data.target)
+    df = pd.DataFrame(data.data)
+    df.drop_duplicates(inplace=True)
+    datasets_dict['iris'] = (df.to_numpy(), data.target)
 
     # Load wine dataset
     data = datasets.load_wine()
     datasets_dict['wine'] = (data.data, data.target)
 
     # Load swiss roll dataset
-    X, Y = datasets.make_swiss_roll(n_samples=200)
+    X, Y = datasets.make_swiss_roll(n_samples=1000)
     datasets_dict['swiss_roll'] = (X, Y)
 
     # Load penguins dataset
@@ -39,45 +41,45 @@ def load_datasets():
     X = data[['acceleration', 'cylinders',
               'displacement', 'horsepower', 'weight']]
     Y = data['mpg']
-    datasets_dict['auto_mpg'] = (X, Y)
+    datasets_dict['auto_mpg'] = (X.drop_duplicates(), Y)
 
     # Load s-curve dataset
-    X, Y = datasets.make_s_curve(n_samples=200)
+    X, Y = datasets.make_s_curve(n_samples=1000)
     datasets_dict['s_curve'] = (X, Y)
 
     # Load the bank dataset
     X, Y = pd.read_csv('../data/bank/X.csv'), pd.read_csv('../data/bank/Y.csv')
-    datasets_dict['bank'] = (X, Y)
+    datasets_dict['bank'] = (X.drop_duplicates(), Y)
 
     # Load the CNAE-9 dataset
     X, Y = pd.read_csv(
         '../data/cnae-9/X.csv'), pd.read_csv('../data/cnae-9/Y.csv')
-    datasets_dict['cnae9'] = (X, Y)
+    datasets_dict['cnae9'] = (X.drop_duplicates(), Y)
 
     # Load the COIL-20 dataset
     X, Y = pd.read_csv(
         '../data/coil-20/X.csv'), pd.read_csv('../data/coil-20/Y.csv')
-    datasets_dict['coil20'] = (X, Y)
+    datasets_dict['coil20'] = (X.drop_duplicates(), Y)
 
     # Load the Epileptic Seizure Recognition dataset
     X, Y = pd.read_csv(
         '../data/epileptic/X.csv'), pd.read_csv('../data/epileptic/Y.csv')
-    datasets_dict['epilepsy'] = (X, Y)
+    datasets_dict['epilepsy'] = (X.drop_duplicates(), Y)
 
     # Load the Spambase dataset
     X, Y = pd.read_csv(
         '../data/spambase/X.csv'), pd.read_csv('../data/spambase/Y.csv')
-    datasets_dict['spambase'] = (X, Y)
+    datasets_dict['spambase'] = (X.drop_duplicates(), Y)
 
     # Load the Human Activity Recognition Using Smartphones dataset
     X, Y = pd.read_csv(
         '../data/har/X.csv'), pd.read_csv('../data/har/Y.csv')
-    datasets_dict['har'] = (X, Y)
+    datasets_dict['har'] = (X.drop_duplicates(), Y)
 
     # Load the Sentiment Labelled Sentences dataset
     X, Y = pd.read_csv(
         '../data/sentiment/X.csv'), pd.read_csv('../data/sentiment/Y.csv')
-    datasets_dict['sentiment'] = (X, Y)
+    datasets_dict['sentiment'] = (X.drop_duplicates(), Y)
 
     return datasets_dict
 
@@ -110,6 +112,17 @@ def load_big_datasets():
 
     X, Y = X_fmnist[indices_fmnist], y_fmnist[indices_fmnist]
     datasets_dict['fmnist'] = (X, Y)
+
+    # Load the Spambase dataset
+    X_spam, y_spam = pd.read_csv(
+        '../data/spambase/X.csv'), pd.read_csv('../data/spambase/Y.csv')
+
+    # Randomly select 1000 samples from the dataset
+    indices_spam = np.random.choice(
+        X_spam.shape[0], size=1000, replace=False)
+    
+    X, Y = X_spam.iloc[indices_spam,:], y_spam.iloc[indices_spam,:]
+    datasets_dict['spambase'] = (X.drop_duplicates(), Y)
 
     return datasets_dict
 

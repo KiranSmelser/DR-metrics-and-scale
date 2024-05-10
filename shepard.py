@@ -23,22 +23,22 @@ area of the Shepard diagram square."""
         dist_low = dist_low.flatten()
 
         # Calculate the scalar for the axes
-        scalar = dist_high.ptp() / dist_low.ptp()
-        scalars.append(scalar)
-        dist_low *= scalar
-        if scalar > max_scalar:
-            scalars = scalars[:-1]
-            scalar = dist_low.ptp() / dist_high.ptp()
-            scalars.append(scalar)
-            dist_high *= scalar
+        # scalar = dist_high.ptp() / dist_low.ptp()
+        # scalars.append(scalar)
+        # dist_low *= scalar
+        # if scalar > max_scalar:
+        #     scalars = scalars[:-1]
+        #     scalar = dist_low.ptp() / dist_high.ptp()
+        #     scalars.append(scalar)
+        #     dist_high *= scalar
 
         # Compute the correlation between distances
         corr, _ = spearmanr(dist_high, dist_low)
         correlations.append(corr)
 
-        plot_shepard(dist_high, dist_low, list(techniques)[i], dataset)
+        #plot_shepard(dist_high, dist_low, list(techniques)[i], dataset)
 
-    return scalars, correlations
+    return correlations
 
 
 def plot_shepard(high, low, algo, dataset_name):
@@ -48,5 +48,5 @@ def plot_shepard(high, low, algo, dataset_name):
     plt.xlabel('Low-dimensional distances')
     plt.ylabel('High-dimensional distances')
     plt.title(f'Shepard diagram for {algo}')
-    plt.savefig(f'{dataset_name}/{algo}_sheppard.png')
+    plt.savefig(f'{dataset_name}/{algo}_shepard.png')
     plt.clf()
