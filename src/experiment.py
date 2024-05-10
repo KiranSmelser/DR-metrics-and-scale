@@ -84,7 +84,7 @@ def main():
         df = pd.DataFrame(all_results)
         df.loc[len(df)] = df.mean()
         df.loc[df['Run'] == 5.5, 'Run'] = 'Average'
-        df.to_csv(f'experiment/{dataset_name}.csv', index=False)
+        df.to_csv(f'../results/experiment/{dataset_name}.csv', index=False)
 
 
 if __name__ == "__main__":

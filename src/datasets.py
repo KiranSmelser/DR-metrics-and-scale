@@ -48,37 +48,38 @@ def load_datasets():
     datasets_dict['s_curve'] = (X, Y)
 
     # Load the bank dataset
-    X, Y = pd.read_csv('../data/bank/X.csv'), pd.read_csv('../data/bank/Y.csv')
+    X, Y = pd.read_csv(
+        '../../data/bank/X.csv'), pd.read_csv('../../data/bank/Y.csv')
     datasets_dict['bank'] = (X.drop_duplicates(), Y)
 
     # Load the CNAE-9 dataset
     X, Y = pd.read_csv(
-        '../data/cnae-9/X.csv'), pd.read_csv('../data/cnae-9/Y.csv')
+        '../../data/cnae-9/X.csv'), pd.read_csv('../../data/cnae-9/Y.csv')
     datasets_dict['cnae9'] = (X.drop_duplicates(), Y)
 
     # Load the COIL-20 dataset
     X, Y = pd.read_csv(
-        '../data/coil-20/X.csv'), pd.read_csv('../data/coil-20/Y.csv')
+        '../../data/coil-20/X.csv'), pd.read_csv('../../data/coil-20/Y.csv')
     datasets_dict['coil20'] = (X.drop_duplicates(), Y)
 
     # Load the Epileptic Seizure Recognition dataset
     X, Y = pd.read_csv(
-        '../data/epileptic/X.csv'), pd.read_csv('../data/epileptic/Y.csv')
+        '../../data/epileptic/X.csv'), pd.read_csv('../../data/epileptic/Y.csv')
     datasets_dict['epilepsy'] = (X.drop_duplicates(), Y)
 
     # Load the Spambase dataset
     X, Y = pd.read_csv(
-        '../data/spambase/X.csv'), pd.read_csv('../data/spambase/Y.csv')
+        '../../data/spambase/X.csv'), pd.read_csv('../../data/spambase/Y.csv')
     datasets_dict['spambase'] = (X.drop_duplicates(), Y)
 
     # Load the Human Activity Recognition Using Smartphones dataset
     X, Y = pd.read_csv(
-        '../data/har/X.csv'), pd.read_csv('../data/har/Y.csv')
+        '../../data/har/X.csv'), pd.read_csv('../../data/har/Y.csv')
     datasets_dict['har'] = (X.drop_duplicates(), Y)
 
     # Load the Sentiment Labelled Sentences dataset
     X, Y = pd.read_csv(
-        '../data/sentiment/X.csv'), pd.read_csv('../data/sentiment/Y.csv')
+        '../../data/sentiment/X.csv'), pd.read_csv('../../data/sentiment/Y.csv')
     datasets_dict['sentiment'] = (X.drop_duplicates(), Y)
 
     return datasets_dict
@@ -115,7 +116,7 @@ def load_big_datasets():
 
     # Load the Spambase dataset
     X_spam, y_spam = pd.read_csv(
-        '../data/spambase/X.csv'), pd.read_csv('../data/spambase/Y.csv')
+        '../../data/spambase/X.csv'), pd.read_csv('../../data/spambase/Y.csv')
 
     # Randomly select 1000 samples from the dataset
     indices_spam = np.random.choice(
@@ -128,7 +129,7 @@ def load_big_datasets():
 
 
 def find_range(dataset):
-    ranges = pd.read_excel('ranges.xlsx')
+    ranges = pd.read_excel('../ranges.xlsx')
     max = ranges.loc[ranges['dataset'] == dataset, 'max'].iloc[0]
     if max < 1:
         return 1.1

@@ -114,5 +114,5 @@ dimensionality reduction techniques."""
     labels.extend(['t-SNE shepard Scalar',
                   'UMAP shepard Scalar', 'MDS shepard Scalar', 'Random shepard Scalar'])
     plt.legend(handles=handles, labels=labels)
-    plt.savefig(f'{dataset}/summary_plot.png')
+    plt.savefig(f'../results/{dataset}/summary_plot.png')
     plt.clf()

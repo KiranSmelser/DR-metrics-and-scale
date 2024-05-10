@@ -83,11 +83,11 @@ def main():
 
     df = pd.DataFrame.from_dict(results_dict, orient='index', columns=[
                                 'Initial Stress', '\"True\" Stress', 'Shepard'])
-    df.to_csv('./results/ground experiment/experiment_results_umap.csv')
+    df.to_csv('../results/ground experiment/experiment_results_umap.csv')
 
     df_order = pd.DataFrame(results_order_dict)
     df_order.to_csv(
-        './results/ground experiment/experiment_orderings_umap.csv', index=False)
+        '../results/ground experiment/experiment_orderings_umap.csv', index=False)
 
 
 if __name__ == "__main__":

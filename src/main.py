@@ -64,18 +64,18 @@ def main():
         # summary_plot(scalars, shepard_scalars, results, dataset_name)
 
         # Save projections and stresses
-        with pd.ExcelWriter(f'{dataset_name}/projections.xlsx') as writer:
+        with pd.ExcelWriter(f'../results/{dataset_name}/projections.xlsx') as writer:
             for algo, (fit, stresses) in results.items():
                 pd.DataFrame(fit).to_excel(writer, sheet_name=f'{algo}_fit', header=False, index=False)
 
-        with pd.ExcelWriter(f'{dataset_name}/stresses.xlsx') as writer:
+        with pd.ExcelWriter(f'../results/{dataset_name}/stresses.xlsx') as writer:
             for algo, (fit, stresses) in results.items():
                 pd.DataFrame(stresses).to_excel(writer, sheet_name=f'{algo}_stresses', header=False, index=False)
 
         # Save rankings
         rankings_df = pd.DataFrame(rankings).transpose()
         rankings_df.columns = [f'Ranking {i+1}' for i, _ in enumerate(rankings_df.columns)]
-        rankings_df.to_csv(f'{dataset_name}/rankings.csv',
+        rankings_df.to_csv(f'../results/{dataset_name}/rankings.csv',
                            header=True, index=False)
 
 

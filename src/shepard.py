@@ -48,5 +48,5 @@ def plot_shepard(high, low, algo, dataset_name):
     plt.xlabel('Low-dimensional distances')
     plt.ylabel('High-dimensional distances')
     plt.title(f'Shepard diagram for {algo}')
-    plt.savefig(f'{dataset_name}/{algo}_shepard.png')
+    plt.savefig(f'../results/{dataset_name}/{algo}_shepard.png')
     plt.clf()

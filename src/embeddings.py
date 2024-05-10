@@ -40,5 +40,5 @@ def plot_embeddings(techniques, dataset):
     plt.title('Random')
 
     plt.tight_layout()
-    plt.savefig(f'{dataset}/embeddings.png')
+    plt.savefig(f'../results/{dataset}/embeddings.png')
     plt.clf()
