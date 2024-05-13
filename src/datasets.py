@@ -129,7 +129,7 @@ def load_big_datasets():
 
 
 def find_range(dataset):
-    ranges = pd.read_excel('../ranges.xlsx')
+    ranges = pd.read_csv('../ranges.csv')
     max = ranges.loc[ranges['dataset'] == dataset, 'max'].iloc[0]
     if max < 1:
         return 1.1
