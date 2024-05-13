@@ -1,0 +1,5 @@
+Ranking 1,Ranking 2,Ranking 3,Ranking 4
+tsne,umap,umap,mds
+umap,mds,tsne,random
+mds,random,mds,umap
+random,tsne,random,tsne
