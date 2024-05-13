@@ -44,3 +44,15 @@ def find_optimal_scalars_exact(D_low, D_high):
     D_low_triu = D_low[np.triu_indices(D_low.shape[0], k=1)]
     D_high_triu = D_high[np.triu_indices(D_high.shape[0], k=1)]
     return np.sum(D_low_triu * D_high_triu) / np.sum(np.square(D_low_triu))
+
+
+def find_intersection(D_X, D_A, D_B):
+    """
+    Calculate the intersection points of two low-dimensional projections.
+    """
+    numerator = 2 * np.sum(-D_B * D_X + D_A * D_X)
+    denominator = np.sum(np.square(D_A) - np.square(D_B))
+
+    alpha = numerator / denominator
+
+    return alpha
