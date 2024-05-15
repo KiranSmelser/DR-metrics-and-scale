@@ -17,7 +17,7 @@ class DimensionReducer():
         return Y
 
     def compute_TSNE(self):
-        Y = TSNE(metric='precomputed').fit_transform(self.D)
+        Y = TSNE(metric='precomputed',init='random').fit_transform(self.D)
         return Y
 
     def compute_UMAP(self):
@@ -38,16 +38,17 @@ if __name__ == "__main__":
         os.makedirs("data_embeddings")    
 
     for name, data in tqdm.tqdm(load_datasets().items()):
-        DR = DimensionReducer(*data)
+        for i in range(10):
+            DR = DimensionReducer(*data)
 
-        mds = DR.compute_MDS()
-        np.save(f"data_embeddings/{name}_mds.npy", mds)
+            mds = DR.compute_MDS()
+            np.save(f"data_embeddings/{name}_{i}_mds.npy", mds)
 
-        tsne = DR.compute_TSNE()
-        np.save(f"data_embeddings/{name}_tsne.npy", tsne)
+            tsne = DR.compute_TSNE()
+            np.save(f"data_embeddings/{name}_{i}_tsne.npy", tsne)
 
-        umap = DR.compute_UMAP()
-        np.save(f"data_embeddings/{name}_umap.npy", umap)
+            umap = DR.compute_UMAP()
+            np.save(f"data_embeddings/{name}_{i}_umap.npy", umap)
 
-        rand = DR.compute_random()
-        np.save(f"data_embeddings/{name}_random.npy", rand)
+            rand = DR.compute_random()
+            np.save(f"data_embeddings/{name}_{i}_random.npy", rand)

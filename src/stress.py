@@ -8,6 +8,47 @@ from scipy.spatial.distance import pdist, squareform
 from zadu.measures import *
 
 
+def compute_stress_kruskal(D_high, D_low):
+    """
+    Computes the non-metric stress between high dimensional distances D_high
+    and low dimensional distances D_low. Invariant to scale of D_low.
+    """
+    from sklearn.isotonic import IsotonicRegression
+
+    dij = D_high
+    xij = D_low
+
+    # Find the indices of dij that when reordered, would sort it. Apply to both arrays
+    sorted_indices = np.argsort(dij)
+    dij = dij[sorted_indices]
+    xij = xij[sorted_indices]
+
+    hij = IsotonicRegression().fit(dij, xij).predict(dij)
+
+    raw_stress = np.sum(np.square(xij - hij))
+    norm_factor = np.sum(np.square(xij))
+
+    kruskal_stress = np.sqrt(raw_stress / norm_factor)
+    return kruskal_stress
+
+def compute_stress_kruskal_coordinates(X_high, X_low):
+    """
+    Interface for non-metric stress passing the coordinates.
+    """
+    D_high = pdist(X_high)
+    D_low = pdist(X_low)
+    return compute_stress_kruskal(D_high,D_low)
+
+def evaluate_scaling_kruskal(X_high, X_low, scalars):
+    """
+    Interface for non-metric stress to match evaluate_scaling function. 
+    Note that non-metric stress is scale invariant.
+    """
+    D_high = pdist(X_high)
+    D_low = pdist(X_low)
+    return [compute_stress_kruskal(D_high, a * D_low) for a in scalars]
+
+
 def evaluate_scaling(X_high, X_low, scalars):
     """Function that scales the Stress score within an "interesting" range."""
     D_high = pdist(X_high)
