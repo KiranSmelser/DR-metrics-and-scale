@@ -1,4 +1,4 @@
-import numpy as np 
+import numpy as np
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.manifold import TSNE, MDS
@@ -6,6 +6,7 @@ from umap import UMAP
 import warnings
 
 from datasets import load_datasets
+
 
 class DimensionReducer():
     def __init__(self, X, labels):
@@ -19,7 +20,7 @@ class DimensionReducer():
         return Y
 
     def compute_TSNE(self):
-        Y = TSNE(metric='precomputed',init='random').fit_transform(self.D)
+        Y = TSNE(metric='precomputed', init='random').fit_transform(self.D)
         return Y
 
     def compute_UMAP(self):
@@ -27,11 +28,10 @@ class DimensionReducer():
             warnings.filterwarnings('ignore', category=UserWarning)
             Y = UMAP(metric='precomputed').fit_transform(self.D)
             return Y
-    
-    def compute_random(self):
-        Y = np.random.uniform(0,1,(self.X.shape[0], 2))
-        return Y
 
+    def compute_random(self):
+        Y = np.random.uniform(0, 1, (self.X.shape[0], 2))
+        return Y
 
 
 if __name__ == "__main__":
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     import os
 
     if not os.path.isdir("data_embeddings"):
-        os.makedirs("data_embeddings")    
+        os.makedirs("data_embeddings")
 
     for name, data in tqdm.tqdm(load_datasets().items()):
         for i in range(10):

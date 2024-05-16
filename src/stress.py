@@ -6,6 +6,7 @@ dimensionality reduction technique."""
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
 from sklearn.isotonic import IsotonicRegression
+
 from zadu.measures import *
 
 

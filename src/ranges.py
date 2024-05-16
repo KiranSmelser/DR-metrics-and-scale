@@ -4,6 +4,7 @@ from sklearn import manifold
 import umap.umap_ as umap
 from sklearn.preprocessing import MinMaxScaler
 from scipy.spatial.distance import pdist, squareform
+
 from datasets import *
 from stress import *
 

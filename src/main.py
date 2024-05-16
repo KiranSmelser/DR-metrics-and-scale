@@ -1,8 +1,7 @@
 import numpy as np
 import pandas as pd
-from sklearn import manifold
-import umap.umap_ as umap
 from sklearn.preprocessing import MinMaxScaler
+
 from zadu.measures import *
 from datasets import *
 from stress import *
@@ -45,8 +44,7 @@ def main():
             }
 
             # Shepard correlations
-            shepard_corr = shepard(
-                X, results, max, dataset_name)
+            shepard_corr = shepard(X, results)
 
             # Minimum stress and optimal scalars
             min_stress = {algo: find_min_stress_exact(

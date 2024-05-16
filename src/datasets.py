@@ -121,8 +121,8 @@ def load_big_datasets():
     # Randomly select 1000 samples from the dataset
     indices_spam = np.random.choice(
         X_spam.shape[0], size=1000, replace=False)
-    
-    X, Y = X_spam.iloc[indices_spam,:], y_spam.iloc[indices_spam,:]
+
+    X, Y = X_spam.iloc[indices_spam, :], y_spam.iloc[indices_spam, :]
     datasets_dict['spambase'] = (X.drop_duplicates(), Y)
 
     return datasets_dict

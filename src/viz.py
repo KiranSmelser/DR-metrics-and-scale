@@ -26,7 +26,7 @@ scores of the dimensionality reduction techniques within an "interesting" range.
     return rankings
 
 
-def plot_summary(X, techniques, dataset_name):
+def plot_summary(techniques, dataset_name):
     """Function that plots the summary plot for all techniques."""
     plt.figure(figsize=(10, 8))
 
@@ -42,9 +42,11 @@ def plot_summary(X, techniques, dataset_name):
                 other_stresses = [np.load(
                     f'../results/{dataset_name}/stresses/stress_{j}_{other_technique}.npy') for j in range(10)]
                 avg_other_stress = np.mean(other_stresses, axis=0)
-                intersection = np.argwhere(np.diff(np.sign(np.array(avg_other_stress) - np.array(avg_stress)))).flatten()
+                intersection = np.argwhere(
+                    np.diff(np.sign(np.array(avg_other_stress) - np.array(avg_stress)))).flatten()
                 if len(intersection) > 1:
-                    plt.axvline(x=scalars[intersection[1]], color='gray', linestyle='--')
+                    plt.axvline(x=scalars[intersection[1]],
+                                color='gray', linestyle='--')
 
         plt.plot(scalars, avg_stress, label=technique)
 
@@ -106,7 +108,7 @@ if __name__ == "__main__":
             plot_embedding(df, technique, i)
             plot_shepard(X, avg_embedding, technique, dataset_name)
 
-        plot_summary(X, techniques, dataset_name)
+        plot_summary(techniques, dataset_name)
 
         sns.set_palette("colorblind")
         plt.tight_layout()
