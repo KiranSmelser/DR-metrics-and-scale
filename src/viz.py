@@ -52,17 +52,18 @@ def plot_summary(X, techniques, dataset_name):
         min_index = np.argmin(avg_stress)
         plt.scatter(scalars[min_index], avg_stress[min_index])
 
-    plt.yscale("log")
-    plt.title(f'{dataset_name} summary plot')
-    plt.legend()
+    plt.yscale('log')
+    plt.title(f'{dataset_name}')
+    plt.ylabel('log(stress)')
+    plt.legend(loc='best')
     plt.savefig(f'../results/{dataset_name}/summary.png')
     plt.close()
 
 
 def plot_shepard(high, low, algo, dataset):
     """Function that plots the Shepard diagram for each technique."""
-    if high.shape[0] > 1000:
-        idx = np.random.choice(high.shape[0], 1000, replace=False)
+    if high.shape[0] > 200:
+        idx = np.random.choice(high.shape[0], 200, replace=False)
         high = high[idx]
         low = low[idx]
 
