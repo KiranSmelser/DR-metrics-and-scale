@@ -1,13 +1,15 @@
 import numpy as np 
 from sklearn.metrics import pairwise_distances
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.manifold import TSNE, MDS
 from umap import UMAP
+import warnings
 
 from datasets import load_datasets
 
 class DimensionReducer():
     def __init__(self, X, labels):
-        self.X = X 
+        self.X = MinMaxScaler().fit_transform(X)
         self.labels = labels
 
         self.D = pairwise_distances(self.X)
@@ -21,8 +23,10 @@ class DimensionReducer():
         return Y
 
     def compute_UMAP(self):
-        Y = UMAP(metric='precomputed').fit_transform(self.D)
-        return Y
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=UserWarning)
+            Y = UMAP(metric='precomputed').fit_transform(self.D)
+            return Y
     
     def compute_random(self):
         Y = np.random.uniform(0,1,(self.X.shape[0], 2))

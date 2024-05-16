@@ -5,6 +5,7 @@ dimensionality reduction technique."""
 
 import numpy as np
 from scipy.spatial.distance import pdist, squareform
+from sklearn.isotonic import IsotonicRegression
 from zadu.measures import *
 
 
@@ -13,8 +14,6 @@ def compute_stress_kruskal(D_high, D_low):
     Computes the non-metric stress between high dimensional distances D_high
     and low dimensional distances D_low. Invariant to scale of D_low.
     """
-    from sklearn.isotonic import IsotonicRegression
-
     dij = D_high
     xij = D_low
 
@@ -31,13 +30,6 @@ def compute_stress_kruskal(D_high, D_low):
     kruskal_stress = np.sqrt(raw_stress / norm_factor)
     return kruskal_stress
 
-def compute_stress_kruskal_coordinates(X_high, X_low):
-    """
-    Interface for non-metric stress passing the coordinates.
-    """
-    D_high = pdist(X_high)
-    D_low = pdist(X_low)
-    return compute_stress_kruskal(D_high,D_low)
 
 def evaluate_scaling_kruskal(X_high, X_low, scalars):
     """

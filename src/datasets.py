@@ -20,7 +20,7 @@ def load_datasets():
 
     # Load swiss roll dataset
     X, Y = datasets.make_swiss_roll(n_samples=1000)
-    datasets_dict['swiss_roll'] = (X, Y)
+    datasets_dict['roll'] = (X, Y)
 
     # Load penguins dataset
     data = sns.load_dataset('penguins').dropna(thresh=6)
@@ -41,11 +41,11 @@ def load_datasets():
     X = data[['acceleration', 'cylinders',
               'displacement', 'horsepower', 'weight']]
     Y = data['mpg']
-    datasets_dict['auto_mpg'] = (X.drop_duplicates(), Y)
+    datasets_dict['auto'] = (X.drop_duplicates(), Y)
 
     # Load s-curve dataset
     X, Y = datasets.make_s_curve(n_samples=1000)
-    datasets_dict['s_curve'] = (X, Y)
+    datasets_dict['curve'] = (X, Y)
 
     # Load the bank dataset
     X, Y = pd.read_csv(
@@ -131,6 +131,4 @@ def load_big_datasets():
 def find_range(dataset):
     ranges = pd.read_csv('../ranges.csv')
     max = ranges.loc[ranges['dataset'] == dataset, 'max'].iloc[0]
-    if max < 1:
-        return 1.1
-    return max + 0.1
+    return max + 0.2

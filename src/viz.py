@@ -1,11 +1,14 @@
-"""Module providing functions that determine all order changes among the 
-Normalized Stress scores of the dimensionality reduction techniques within 
-the "interesting" range and create a summary plot used to compared the different techniques."""
-
+"""Plots the low-dimensional embeddings of the dimensionality reduction techniques."""
+import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy.spatial.distance import pdist
+from sklearn.preprocessing import MinMaxScaler
+
+from datasets import *
+from ranges import *
 
 
 def orderings(scalars, techniques):
@@ -23,96 +26,88 @@ scores of the dimensionality reduction techniques within an "interesting" range.
     return rankings
 
 
-def summary_plot(scalars, shepard, techniques, dataset):
-    """Function that creates a summary plot used to compared the different 
-dimensionality reduction techniques."""
-    tsne_data = pd.DataFrame({
-        'Scalar': scalars,
-        'Normalized Stress': techniques['tsne'][1],
-        'Method': 't-SNE'
-    })
+def plot_summary(X, techniques, dataset_name):
+    """Function that plots the summary plot for all techniques."""
+    plt.figure(figsize=(10, 8))
 
-    umap_data = pd.DataFrame({
-        'Scalar': scalars,
-        'Normalized Stress': techniques['umap'][1],
-        'Method': 'UMAP'
-    })
+    for technique in techniques:
+        stresses = [np.load(
+            f'../results/{dataset_name}/stresses/stress_{j}_{technique}.npy') for j in range(10)]
+        avg_stress = np.mean(stresses, axis=0)
+        scalars = np.linspace(0.0, find_range(
+            dataset_name), int(find_range(dataset_name)*100))
 
-    mds_data = pd.DataFrame({
-        'Scalar': scalars,
-        'Normalized Stress': techniques['mds'][1],
-        'Method': 'MDS'
-    })
+        for other_technique in techniques:
+            if other_technique != technique:
+                other_stresses = [np.load(
+                    f'../results/{dataset_name}/stresses/stress_{j}_{other_technique}.npy') for j in range(10)]
+                avg_other_stress = np.mean(other_stresses, axis=0)
+                intersection = np.argwhere(np.diff(np.sign(np.array(avg_other_stress) - np.array(avg_stress)))).flatten()
+                if len(intersection) > 1:
+                    plt.axvline(x=scalars[intersection[1]], color='gray', linestyle='--')
 
-    random_data = pd.DataFrame({
-        'Scalar': scalars,
-        'Normalized Stress': techniques['random'][1],
-        'Method': 'Random'
-    })
+        plt.plot(scalars, avg_stress, label=technique)
 
-    data = pd.concat([tsne_data, umap_data, mds_data, random_data])
+        # Mark the minimum point on each curve
+        min_index = np.argmin(avg_stress)
+        plt.scatter(scalars[min_index], avg_stress[min_index])
 
-    plt.figure(figsize=(20, 12))
-    sns.set(style="whitegrid")
-    sns.lineplot(x='Scalar', y='Normalized Stress',
-                 hue='Method', palette="colorblind", data=data)
-    plt.xlabel('Scalar')
-    plt.ylabel('Normalized Stress')
+    plt.yscale("log")
+    plt.title(f'{dataset_name} summary plot')
+    plt.legend()
+    plt.savefig(f'../results/{dataset_name}/summary.png')
+    plt.close()
 
-    # Points where the shepard Goodness correlation coefficients fall
-    tsne_point, = plt.plot(shepard[0], techniques['tsne'][1][np.argmin(
-        np.abs(scalars - shepard[0]))], 'x', color='blue', markersize=15)
-    umap_point, = plt.plot(shepard[1], techniques['umap'][1][np.argmin(
-        np.abs(scalars - shepard[1]))], 'x', color='orange', markersize=15)
-    mds_point, = plt.plot(shepard[2], techniques['mds'][1][np.argmin(
-        np.abs(scalars - shepard[2]))], 'x', color='green', markersize=15)
-    random_point, = plt.plot(shepard[2], techniques['random'][1][np.argmin(
-        np.abs(scalars - shepard[2]))], 'x', color='red', markersize=15)
 
-    # Initial order
-    initial_scalar_index = np.argmin(np.abs(scalars - 1))
-    initial_order = np.argsort(
-        [techniques['tsne'][1][initial_scalar_index], techniques['umap'][1][initial_scalar_index],
-         techniques['mds'][1][initial_scalar_index], techniques['random'][1][initial_scalar_index]])
-    labels = ['t-SNE', 'UMAP', 'MDS', 'Random']
-    initial_ranking = [labels[i] for i in initial_order]
-    plt.axvline(x=1, color='grey', linestyle='--')
-    ranking_str = "\n" + \
-        "\n".join(
-            [f"{i+1}. {initial_ranking[i]}" for i in range(len(initial_ranking))])
-    plt.annotate(f'Initial Ranking: {ranking_str}', xy=(1, 0.2), xycoords='axes fraction',
-                 xytext=(1/max(scalars)-.015, .2), textcoords='axes fraction',
-                 bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+def plot_shepard(high, low, algo, dataset):
+    """Function that plots the Shepard diagram for each technique."""
+    if high.shape[0] > 1000:
+        idx = np.random.choice(high.shape[0], 1000, replace=False)
+        high = high[idx]
+        low = low[idx]
 
-    # Check for changes in the order
-    annotations = 1
-    previous_order = initial_order
-    for i in range(1, len(scalars)):
-        current_order = np.argsort(
-            [techniques['tsne'][1][i], techniques['umap'][1][i],
-             techniques['mds'][1][i], techniques['random'][1][i]])
-        if not np.array_equal(previous_order, current_order):
-            current_ranking = [labels[j] for j in current_order]
-            ranking_str = "\n" + \
-                "\n".join(
-                    [f"{j+1}. {current_ranking[j]}" for j in range(len(current_ranking))])
-            plt.axvline(x=scalars[i], color='grey', linestyle='--')
-            plt.annotate(f'Ranking when scaled by {scalars[i]:.2f}: {ranking_str}',
-                         xy=(1, .1 * annotations),
-                         xycoords='axes fraction',
-                         xytext=(scalars[i]/max(scalars),
-                                 .12 * annotations),
-                         textcoords=('axes fraction'),
-                         bbox=dict(facecolor='white',
-                                   edgecolor='black',
-                                   boxstyle='round,pad=0.5'))
-            previous_order = current_order
-            annotations += 1
+    high = pdist(high)
+    low = pdist(low)
 
-    handles, labels = plt.gca().get_legend_handles_labels()
-    handles.extend([tsne_point, umap_point, mds_point, random_point])
-    labels.extend(['t-SNE shepard Scalar',
-                  'UMAP shepard Scalar', 'MDS shepard Scalar', 'Random shepard Scalar'])
-    plt.legend(handles=handles, labels=labels)
-    plt.savefig(f'../results/{dataset}/summary_plot.png')
-    plt.clf()
+    plt.figure(figsize=(8, 8))
+    plt.scatter(high, low, s=.1)
+    plt.xlabel('Low-dimensional distances')
+    plt.ylabel('High-dimensional distances')
+    plt.title(f'Shepard diagram for {algo}')
+    plt.savefig(f'../results/{dataset}/{algo}_shepard.png')
+    plt.close()
+
+
+def plot_embedding(df, algo, subplot_position):
+    """Function that plots a single low-dimensional embedding."""
+    plt.subplot(2, 2, subplot_position)
+    sns.scatterplot(data=df, x='Component 1', y='Component 2')
+    plt.title(algo.capitalize())
+
+
+if __name__ == "__main__":
+    techniques = ['tsne', 'umap', 'mds', 'random']
+    datasets_dict = load_datasets()
+
+    for dataset_name, (X, Y) in datasets_dict.items():
+        # Min-Max normalization
+        X = MinMaxScaler().fit_transform(X)
+
+        plt.figure(figsize=(15, 10))
+
+        for i, technique in enumerate(techniques, 1):
+            embeddings = [
+                np.load(f'./data_embeddings/{dataset_name}_{j}_{technique}.npy') for j in range(10)]
+            avg_embedding = np.mean(embeddings, axis=0)
+            df = pd.DataFrame(avg_embedding, columns=[
+                              'Component 1', 'Component 2'])
+
+            plot_embedding(df, technique, i)
+            plot_shepard(X, avg_embedding, technique, dataset_name)
+
+        plot_summary(X, techniques, dataset_name)
+
+        sns.set_palette("colorblind")
+        plt.tight_layout()
+        plt.savefig(f'../results/{dataset_name}/embeddings.png')
+        plt.close()

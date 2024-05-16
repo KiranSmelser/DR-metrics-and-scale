@@ -1,82 +1,93 @@
 import numpy as np
+import pandas as pd
 from sklearn import manifold
 import umap.umap_ as umap
 from sklearn.preprocessing import MinMaxScaler
 from zadu.measures import *
 from datasets import *
 from stress import *
-from embeddings import *
 from shepard import *
-from viz import *
 
 
 def main():
-    np.random.seed(23)
     datasets_dict = load_datasets()
 
     for dataset_name, (X, Y) in datasets_dict.items():
-        # range = find_range(dataset_name)
-        range = 1
-        scalars = np.linspace(0.0, range, int(range*100))
-
         # Min-Max normalization
         X = MinMaxScaler().fit_transform(X)
 
-        # t-SNE
-        tsne = manifold.TSNE(n_components=2, perplexity=40,
-                             init='pca')
-        fit_tsne = tsne.fit_transform(X)
-        tsne_stresses = evaluate_scaling(X, fit_tsne, scalars)
+        rrange = find_range(dataset_name)
+        scalars = np.linspace(0.0, rrange, int(rrange*100))
+        all_results = []
 
-        # UMAP
-        reducer = umap.UMAP()
-        fit_umap = reducer.fit_transform(X)
-        umap_stresses = evaluate_scaling(X, fit_umap, scalars)
+        for i in range(10):
+            # Load the embeddings from the files
+            fit_mds = np.load(f'./data_embeddings/{dataset_name}_{i}_mds.npy')
+            fit_umap = np.load(
+                f'./data_embeddings/{dataset_name}_{i}_umap.npy')
+            fit_tsne = np.load(
+                f'./data_embeddings/{dataset_name}_{i}_tsne.npy')
+            fit_random = np.load(
+                f'./data_embeddings/{dataset_name}_{i}_random.npy')
 
-        # MDS
-        mds = manifold.MDS(n_components=2, n_init=1,
-                           max_iter=120, n_jobs=2)
-        fit_mds = mds.fit_transform(X)
-        mds_stresses = evaluate_scaling(X, fit_mds, scalars)
+            # Calculate stress values
+            tsne_stresses = evaluate_scaling(X, fit_tsne, scalars)
+            umap_stresses = evaluate_scaling(X, fit_umap, scalars)
+            mds_stresses = evaluate_scaling(X, fit_mds, scalars)
+            random_stresses = evaluate_scaling(X, fit_random, scalars)
 
-        # Random Projection
-        fit_random = np.random.uniform(0, 1, size=(X.shape[0], 2))
-        random_stresses = evaluate_scaling(X, fit_random, scalars)
+            # Save results
+            results = {
+                'tsne': (fit_tsne, tsne_stresses),
+                'umap': (fit_umap, umap_stresses),
+                'mds': (fit_mds, mds_stresses),
+                'random': (fit_random, random_stresses)
+            }
+
+            # Shepard correlations
+            shepard_corr = shepard(
+                X, results, max, dataset_name)
+
+            # Minimum stress and optimal scalars
+            min_stress = {algo: find_min_stress_exact(
+                fit, X) for algo, (fit, stresses) in results.items()}
+
+            # Initial stress
+            initial_stress = [evaluate_scaling(X, fit_tsne, [1])[0],
+                              evaluate_scaling(X, fit_umap, [1])[0],
+                              evaluate_scaling(X, fit_mds, [1])[0],
+                              evaluate_scaling(X, fit_random, [1])[0]]
+
+            run_results = {
+                'Run': i+1,
+                'mds_init': initial_stress[2],
+                'umap_init': initial_stress[1],
+                'tsne_init': initial_stress[0],
+                'random_init': initial_stress[3],
+                'mds_min': min_stress['mds'][0],
+                'umap_min': min_stress['umap'][0],
+                'tsne_min': min_stress['tsne'][0],
+                'random_min': min_stress['random'][0],
+                'mds_scalar': min_stress['mds'][1],
+                'umap_scalar': min_stress['umap'][1],
+                'tsne_scalar': min_stress['tsne'][1],
+                'random_scalar': min_stress['random'][1],
+                'mds_shepard': shepard_corr[2],
+                'umap_shepard': shepard_corr[1],
+                'tsne_shepard': shepard_corr[0],
+                'random_shepard': shepard_corr[3]
+            }
+            all_results.append(run_results)
+
+            for algo, (fit, stresses) in results.items():
+                np.save(
+                    f"../results/{dataset_name}/stresses/stress_{i}_{algo}.npy", stresses)
 
         # Save results
-        results = {
-            'tsne': (fit_tsne, tsne_stresses),
-            'umap': (fit_umap, umap_stresses),
-            'mds': (fit_mds, mds_stresses),
-            'random': (fit_random, random_stresses)
-        }
-
-        # Plot embeddings
-        plot_embeddings(results, dataset_name)
-
-        # Plot Sheppard Diagrams
-        shepard(X, results, range, dataset_name)
-
-        # Orderings
-        rankings = set(orderings(scalars, results))
-
-        # Create summary plot
-        # summary_plot(scalars, shepard_scalars, results, dataset_name)
-
-        # Save projections and stresses
-        with pd.ExcelWriter(f'../results/{dataset_name}/projections.xlsx') as writer:
-            for algo, (fit, stresses) in results.items():
-                pd.DataFrame(fit).to_excel(writer, sheet_name=f'{algo}_fit', header=False, index=False)
-
-        with pd.ExcelWriter(f'../results/{dataset_name}/stresses.xlsx') as writer:
-            for algo, (fit, stresses) in results.items():
-                pd.DataFrame(stresses).to_excel(writer, sheet_name=f'{algo}_stresses', header=False, index=False)
-
-        # Save rankings
-        rankings_df = pd.DataFrame(rankings).transpose()
-        rankings_df.columns = [f'Ranking {i+1}' for i, _ in enumerate(rankings_df.columns)]
-        rankings_df.to_csv(f'../results/{dataset_name}/rankings.csv',
-                           header=True, index=False)
+        df = pd.DataFrame(all_results)
+        df.loc[len(df)] = df.mean()
+        df.loc[df['Run'] == 5.5, 'Run'] = 'Average'
+        df.to_csv(f'../results/experiment/{dataset_name}.csv', index=False)
 
 
 if __name__ == "__main__":
