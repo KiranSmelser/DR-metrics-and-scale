@@ -6,6 +6,7 @@ from zadu.measures import *
 from datasets import *
 from stress import *
 from shepard import *
+from viz import *
 
 
 def main():
@@ -80,6 +81,11 @@ def main():
             for algo, (fit, stresses) in results.items():
                 np.save(
                     f"../results/{dataset_name}/stresses/stress_{i}_{algo}.npy", stresses)
+                
+            # Plots
+            for algo, (fit, stresses) in results.items():
+                plot_shepard(X, fit, algo, dataset_name, i)
+                plot_embedding(fit, algo, dataset_name, i)
 
         # Save results
         df = pd.DataFrame(all_results)

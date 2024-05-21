@@ -1,10 +1,10 @@
 """Plots the low-dimensional embeddings of the dimensionality reduction techniques."""
-import os
+import itertools
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from scipy.spatial.distance import pdist
+from scipy.optimize import fsolve
 from sklearn.preprocessing import MinMaxScaler
 
 from datasets import *
@@ -30,6 +30,9 @@ def plot_summary(techniques, dataset_name):
     """Function that plots the summary plot for all techniques."""
     plt.figure(figsize=(10, 8))
 
+    # Store all curves
+    curves = []
+
     for technique in techniques:
         stresses = [np.load(
             f'../results/{dataset_name}/stresses/stress_{j}_{technique}.npy') for j in range(10)]
@@ -37,32 +40,42 @@ def plot_summary(techniques, dataset_name):
         scalars = np.linspace(0.0, find_range(
             dataset_name), int(find_range(dataset_name)*100))
 
-        for other_technique in techniques:
-            if other_technique != technique:
-                other_stresses = [np.load(
-                    f'../results/{dataset_name}/stresses/stress_{j}_{other_technique}.npy') for j in range(10)]
-                avg_other_stress = np.mean(other_stresses, axis=0)
-                intersection = np.argwhere(
-                    np.diff(np.sign(np.array(avg_other_stress) - np.array(avg_stress)))).flatten()
-                if len(intersection) > 1:
-                    plt.axvline(x=scalars[intersection[1]],
-                                color='gray', linestyle='--')
-
         plt.plot(scalars, avg_stress, label=technique)
 
         # Mark the minimum point on each curve
         min_index = np.argmin(avg_stress)
-        plt.scatter(scalars[min_index], avg_stress[min_index])
+        plt.scatter(scalars[min_index], avg_stress[min_index], marker='x', label=f'{technique} min')
+
+        # Store the curve
+        curves.append((scalars, avg_stress))
+
+    # Find and mark intersections
+    intersection_label_added = False
+    for (scalars1, avg_stress1), (scalars2, avg_stress2) in itertools.combinations(curves, 2):
+        # Define function for the difference between the two curves
+        func = lambda x : np.interp(x, scalars1, avg_stress1) - np.interp(x, scalars2, avg_stress2)
+        # Find the intersection points (excluding 0)
+        x_intersections = fsolve(func, scalars1[1:])
+        # Mark the intersection points
+        for x in x_intersections:
+            if x >= 0 and x <= find_range(dataset_name):
+                y = np.interp(x, scalars1, avg_stress1)
+
+                if not intersection_label_added:
+                    plt.scatter(x, y, color='gray', zorder=3, label='Intersection')
+                    intersection_label_added = True
+                else:
+                    plt.scatter(x, y, color='gray', zorder=3)
 
     plt.yscale('log')
     plt.title(f'{dataset_name}')
     plt.ylabel('log(stress)')
     plt.legend(loc='best')
-    plt.savefig(f'../results/{dataset_name}/summary.png')
+    plt.savefig(f'../results/{dataset_name}/summary.pdf')
     plt.close()
 
 
-def plot_shepard(high, low, algo, dataset):
+def plot_shepard(high, low, algo, dataset, run):
     """Function that plots the Shepard diagram for each technique."""
     if high.shape[0] > 200:
         idx = np.random.choice(high.shape[0], 200, replace=False)
@@ -76,16 +89,22 @@ def plot_shepard(high, low, algo, dataset):
     plt.scatter(high, low, s=.1)
     plt.xlabel('Low-dimensional distances')
     plt.ylabel('High-dimensional distances')
-    plt.title(f'Shepard diagram for {algo}')
-    plt.savefig(f'../results/{dataset}/{algo}_shepard.png')
+    plt.title(f'Shepard diagram of {dataset} for {algo}')
+    plt.savefig(f'../results/{dataset}/shepard_plots/{algo}_shepard_{run}.pdf')
     plt.close()
 
 
-def plot_embedding(df, algo, subplot_position):
+def plot_embedding(low, algo, dataset, run):
     """Function that plots a single low-dimensional embedding."""
-    plt.subplot(2, 2, subplot_position)
-    sns.scatterplot(data=df, x='Component 1', y='Component 2')
-    plt.title(algo.capitalize())
+    df = pd.DataFrame(low, columns=[
+                              'Component 1', 'Component 2'])
+    plt.figure(figsize=(8, 8))
+    plt.scatter(df['Component 1'], df['Component 2'])
+    plt.xlabel('Component 1')
+    plt.ylabel('Component 2')
+    plt.title(f'Embedding of {dataset} with {algo}')
+    plt.savefig(f'../results/{dataset}/embeddings/{algo}_embedding_{run}.pdf')
+    plt.close()
 
 
 if __name__ == "__main__":
@@ -96,21 +115,5 @@ if __name__ == "__main__":
         # Min-Max normalization
         X = MinMaxScaler().fit_transform(X)
 
-        plt.figure(figsize=(15, 10))
-
-        for i, technique in enumerate(techniques, 1):
-            embeddings = [
-                np.load(f'./data_embeddings/{dataset_name}_{j}_{technique}.npy') for j in range(10)]
-            avg_embedding = np.mean(embeddings, axis=0)
-            df = pd.DataFrame(avg_embedding, columns=[
-                              'Component 1', 'Component 2'])
-
-            plot_embedding(df, technique, i)
-            plot_shepard(X, avg_embedding, technique, dataset_name)
-
         plot_summary(techniques, dataset_name)
 
-        sns.set_palette("colorblind")
-        plt.tight_layout()
-        plt.savefig(f'../results/{dataset_name}/embeddings.png')
-        plt.close()
