@@ -1,0 +1,4 @@
+,Initial Stress,"""True"" Stress",Shepard,Kruskal
+mnist,10,5,10,3
+fmnist,10,10,10,3
+spambase,0,9,10,4

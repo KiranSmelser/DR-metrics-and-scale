@@ -1,11 +1,14 @@
+import os
+import tqdm
 import numpy as np
+from pathlib import Path
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.manifold import TSNE, MDS
 from umap import UMAP
 import warnings
 
-from datasets import load_datasets
+from datasets import *
 
 
 class DimensionReducer():
@@ -32,27 +35,25 @@ class DimensionReducer():
     def compute_random(self):
         Y = np.random.uniform(0, 1, (self.X.shape[0], 2))
         return Y
+    
+
+def save_embeddings(data, name, i, folder):
+    DR = DimensionReducer(*data)
+    computations = ['MDS', 'TSNE', 'UMAP', 'random']
+    methods = [DR.compute_MDS, DR.compute_TSNE, DR.compute_UMAP, DR.compute_random]
+
+    for comp, method in zip(computations, methods):
+        result = method()
+        np.save(f"{folder}/{name}_{i}_{comp.lower()}.npy", result)
+        if folder == 'big_data_embeddings':
+            np.save(f"{folder}/{name}_{i}.npy", data[0])
 
 
 if __name__ == "__main__":
-    import tqdm as tqdm
-    import os
-
-    if not os.path.isdir("data_embeddings"):
-        os.makedirs("data_embeddings")
-
-    for name, data in tqdm.tqdm(load_datasets().items()):
-        for i in range(10):
-            DR = DimensionReducer(*data)
-
-            mds = DR.compute_MDS()
-            np.save(f"data_embeddings/{name}_{i}_mds.npy", mds)
-
-            tsne = DR.compute_TSNE()
-            np.save(f"data_embeddings/{name}_{i}_tsne.npy", tsne)
-
-            umap = DR.compute_UMAP()
-            np.save(f"data_embeddings/{name}_{i}_umap.npy", umap)
-
-            rand = DR.compute_random()
-            np.save(f"data_embeddings/{name}_{i}_random.npy", rand)
+    datasets = [('data_embeddings', load_datasets), ('big_data_embeddings', load_big_datasets)]
+    
+    for folder, loader in datasets:
+        Path(folder).mkdir(exist_ok=True)
+        for name, data in tqdm.tqdm(loader().items()):
+            for i in range(10):
+                save_embeddings(data, name, i, folder)

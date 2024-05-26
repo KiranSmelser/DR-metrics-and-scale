@@ -10,13 +10,13 @@ from sklearn.isotonic import IsotonicRegression
 from zadu.measures import *
 
 
-def compute_stress_kruskal(D_high, D_low):
+def compute_stress_kruskal(X_high, X_low):
     """
     Computes the non-metric stress between high dimensional distances D_high
     and low dimensional distances D_low. Invariant to scale of D_low.
     """
-    dij = D_high
-    xij = D_low
+    dij = pdist(X_high)
+    xij = pdist(X_low)
 
     # Find the indices of dij that when reordered, would sort it. Apply to both arrays
     sorted_indices = np.argsort(dij)

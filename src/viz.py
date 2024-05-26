@@ -1,5 +1,6 @@
 """Plots the low-dimensional embeddings of the dimensionality reduction techniques."""
 import itertools
+import tqdm
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -111,7 +112,7 @@ if __name__ == "__main__":
     techniques = ['tsne', 'umap', 'mds', 'random']
     datasets_dict = load_datasets()
 
-    for dataset_name, (X, Y) in datasets_dict.items():
+    for dataset_name, (X, Y) in tqdm.tqdm(datasets_dict.items()):
         # Min-Max normalization
         X = MinMaxScaler().fit_transform(X)
 

@@ -1,3 +1,4 @@
+import tqdm
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
@@ -12,7 +13,7 @@ from viz import *
 def main():
     datasets_dict = load_datasets()
 
-    for dataset_name, (X, Y) in datasets_dict.items():
+    for dataset_name, (X, Y) in tqdm.tqdm(datasets_dict.items()):
         # Min-Max normalization
         X = MinMaxScaler().fit_transform(X)
 
@@ -56,6 +57,12 @@ def main():
                               evaluate_scaling(X, fit_umap, [1])[0],
                               evaluate_scaling(X, fit_mds, [1])[0],
                               evaluate_scaling(X, fit_random, [1])[0]]
+            
+            # Kruskal stress
+            kruskal_stress = [compute_stress_kruskal(X, fit_tsne),
+                              compute_stress_kruskal(X, fit_umap),
+                              compute_stress_kruskal(X, fit_mds),
+                              compute_stress_kruskal(X, fit_random)]
 
             run_results = {
                 'Run': i+1,
@@ -74,7 +81,11 @@ def main():
                 'mds_shepard': shepard_corr[2],
                 'umap_shepard': shepard_corr[1],
                 'tsne_shepard': shepard_corr[0],
-                'random_shepard': shepard_corr[3]
+                'random_shepard': shepard_corr[3],
+                'mds_kruskal': kruskal_stress[2],
+                'umap_kruskal': kruskal_stress[1],
+                'tsne_kruskal': kruskal_stress[0],
+                'random_kruskal': kruskal_stress[3]
             }
             all_results.append(run_results)
 

@@ -1,4 +1,0 @@
-Dataset,Initial Stress,"""True"" Stress",Shepard
-mnist,10,7,10
-fmnist,10,9,10
-spambase,0,10,10
