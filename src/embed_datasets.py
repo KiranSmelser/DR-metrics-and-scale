@@ -50,7 +50,7 @@ def save_embeddings(data, name, i, folder):
 
 
 if __name__ == "__main__":
-    datasets = [('data_embeddings', load_datasets), ('big_data_embeddings', load_big_datasets)]
+    datasets = [('data_embeddings', load_datasets)]
     
     for folder, loader in datasets:
         Path(folder).mkdir(exist_ok=True)

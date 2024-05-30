@@ -19,7 +19,7 @@ def load_datasets():
     datasets_dict['wine'] = (data.data, data.target)
 
     # Load swiss roll dataset
-    X, Y = datasets.make_swiss_roll(n_samples=1000)
+    X, Y = datasets.make_swiss_roll(n_samples=1500)
     datasets_dict['roll'] = (X, Y)
 
     # Load penguins dataset
@@ -44,7 +44,7 @@ def load_datasets():
     datasets_dict['auto'] = (X.drop_duplicates(), Y)
 
     # Load s-curve dataset
-    X, Y = datasets.make_s_curve(n_samples=1000)
+    X, Y = datasets.make_s_curve(n_samples=1500)
     datasets_dict['curve'] = (X, Y)
 
     # Load the bank dataset

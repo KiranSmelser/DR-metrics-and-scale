@@ -6,12 +6,28 @@ from sklearn.preprocessing import MinMaxScaler
 from zadu.measures import *
 from datasets import *
 from stress import *
-from shepard import *
+from other_measures import *
 from viz import *
+
+
+def compare_rankings(ranking_df):
+    metrics = ranking_df.columns
+    comparison_results = {}
+
+    for i in range(len(metrics)):
+        for j in range(i+1, len(metrics)):
+            metric1 = metrics[i]
+            metric2 = metrics[j]
+            # Check if the rankings are the same
+            same_ranking = (ranking_df[metric1] == ranking_df[metric2]).all()
+            comparison_results[(metric1, metric2)] = int(same_ranking)
+
+    return comparison_results
 
 
 def main():
     datasets_dict = load_datasets()
+    all_datasets_results = {}
 
     for dataset_name, (X, Y) in tqdm.tqdm(datasets_dict.items()):
         # Min-Max normalization
@@ -48,6 +64,26 @@ def main():
             # Shepard correlations
             shepard_corr = shepard(X, results)
 
+            # Trustworthiness & Continuity
+            trustworthiness, continuity = trustworthiness_and_continuity(
+                X, results)
+
+            # MRRE
+            mrre_false, mrre_missing = mrre(X, results)
+
+            # Neighborhood Hit
+            hits = neighbor_hit(X, results)
+
+            # Steadiness & Cohesiveness
+            steadiness, cohesiveness = steadiness_and_cohesiveness(
+                X, results)
+
+            # Kullback-Leibler Divergence
+            kl_divergences = kl(X, results)
+
+            # Pearson correlations
+            pearson_corrs = pearson_corr(X, results)
+
             # Minimum stress and optimal scalars
             min_stress = {algo: find_min_stress_exact(
                 fit, X) for algo, (fit, stresses) in results.items()}
@@ -57,42 +93,33 @@ def main():
                               evaluate_scaling(X, fit_umap, [1])[0],
                               evaluate_scaling(X, fit_mds, [1])[0],
                               evaluate_scaling(X, fit_random, [1])[0]]
-            
+
             # Kruskal stress
             kruskal_stress = [compute_stress_kruskal(X, fit_tsne),
                               compute_stress_kruskal(X, fit_umap),
                               compute_stress_kruskal(X, fit_mds),
                               compute_stress_kruskal(X, fit_random)]
 
-            run_results = {
-                'Run': i+1,
-                'mds_init': initial_stress[2],
-                'umap_init': initial_stress[1],
-                'tsne_init': initial_stress[0],
-                'random_init': initial_stress[3],
-                'mds_min': min_stress['mds'][0],
-                'umap_min': min_stress['umap'][0],
-                'tsne_min': min_stress['tsne'][0],
-                'random_min': min_stress['random'][0],
-                'mds_scalar': min_stress['mds'][1],
-                'umap_scalar': min_stress['umap'][1],
-                'tsne_scalar': min_stress['tsne'][1],
-                'random_scalar': min_stress['random'][1],
-                'mds_shepard': shepard_corr[2],
-                'umap_shepard': shepard_corr[1],
-                'tsne_shepard': shepard_corr[0],
-                'random_shepard': shepard_corr[3],
-                'mds_kruskal': kruskal_stress[2],
-                'umap_kruskal': kruskal_stress[1],
-                'tsne_kruskal': kruskal_stress[0],
-                'random_kruskal': kruskal_stress[3]
-            }
+            methods = ['tsne', 'umap', 'mds', 'random']
+            metrics = ['init', 'min', 'scalar', 'shepard', 'kruskal', 'trustworthiness', 'continuity', 'mrre_false',
+                       'mrre_missing', 'neighborhood_hit', 'steadiness', 'cohesiveness', 'kl_divergence', 'pearson']
+            data_sources = [initial_stress, min_stress, min_stress, shepard_corr, kruskal_stress, trustworthiness,
+                            continuity, mrre_false, mrre_missing, hits, steadiness, cohesiveness, kl_divergences, pearson_corrs]
+
+            run_results = {'Run': i+1}
+            for method, index in zip(methods, range(4)):
+                for metric, data_source in zip(metrics, data_sources):
+                    if metric in ['min', 'scalar']:
+                        run_results[f'{method}_{metric}'] = data_source[method][metrics.index(metric)-1]
+                    else:
+                        run_results[f'{method}_{metric}'] = data_source[index]
+
             all_results.append(run_results)
 
             for algo, (fit, stresses) in results.items():
                 np.save(
                     f"../results/{dataset_name}/stresses/stress_{i}_{algo}.npy", stresses)
-                
+
             # Plots
             for algo, (fit, stresses) in results.items():
                 plot_shepard(X, fit, algo, dataset_name, i)
@@ -103,6 +130,43 @@ def main():
         df.loc[len(df)] = df.mean()
         df.loc[df['Run'] == 5.5, 'Run'] = 'Average'
         df.to_csv(f'../results/experiment/{dataset_name}.csv', index=False)
+
+        avg_row = df.loc[df['Run'] == 'Average']
+        ranking_df = pd.DataFrame(index=methods)
+
+        metrics.remove('scalar')
+        for metric in metrics:
+            metric_cols = [f'{method}_{metric}' for method in methods]
+            metric_avgs = avg_row[metric_cols].values[0]
+            if metric in ['shepard', 'trustworthiness', 'continuity', 'neighborhood_hit', 'pearson']:
+                metric_ranks = pd.Series(
+                    metric_avgs, index=methods).rank(ascending=False)
+            elif metric in ['init', 'min', 'kruskal', 'mrre_false', 'mrre_missing', 'steadiness', 'cohesiveness', 'kl_divergence']:
+                metric_ranks = pd.Series(
+                    metric_avgs, index=methods).rank(ascending=True)
+            ranking_df[metric] = metric_ranks
+
+        ranking_df.to_csv(
+            f'../results/experiment/{dataset_name}_rankings.csv', index=True)
+        
+        # Compare rankings
+        comparison_results = compare_rankings(ranking_df)
+        all_datasets_results[dataset_name] = comparison_results
+
+    # Calculate agreement percentages
+    metrics_pairs = list(all_datasets_results.values())[0].keys()
+    agreement_percentages = {}
+
+    for pair in metrics_pairs:
+        agreement_counts = [results[pair]
+                            for results in all_datasets_results.values()]
+        agreement_percentages[pair] = sum(
+            agreement_counts) / len(agreement_counts) * 100
+
+    # Export to .csv
+    df = pd.DataFrame.from_dict(agreement_percentages, orient='index', columns=[
+                                'Agreement Percentage']).T
+    df.to_csv('../results/experiment/agreement_percentages.csv')
 
 
 if __name__ == "__main__":

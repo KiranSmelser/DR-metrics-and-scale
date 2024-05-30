@@ -1,8 +1,6 @@
 import tqdm
 import numpy as np
 import pandas as pd
-from sklearn import manifold
-from umap import UMAP
 from scipy.stats import spearmanr
 from scipy.spatial.distance import pdist
 from sklearn.preprocessing import MinMaxScaler
@@ -13,51 +11,55 @@ from stress import *
 
 
 def main():
-    methods = ['UMAP', 't-SNE']
+    methods = ['umap', 'tsne']
     for method in methods:
-        expected_order = ['MDS', method, 'Random']
+        expected_order = ['mds', method, 'random']
         results_dict = {}
         results_order_dict = {'Run': [], 'Dataset': [],
                               'Initial Stress': [], '\"True\" Stress': [], 'Shepard': [], 'Kruskal': []}
-        for i in tqdm.tqdm(range(10)):
-            datasets_dict = load_big_datasets()
-            for dataset_name, (X, Y) in datasets_dict.items():
-                if dataset_name not in results_dict:
-                    results_dict[dataset_name] = np.array([0, 0, 0, 0])
-                results = {}
+
+        for i in tqdm.tqdm(range(1)):
+            datasets = ['mnist', 'fmnist', 'spambase']
+
+            for dataset_name in datasets:
+                # Loda high-dimensional data from files
+                X = np.load(f'./big_data_embeddings/{dataset_name}_{i}.npy')
 
                 # Min-Max normalization
                 X = MinMaxScaler().fit_transform(X)
 
-                if method == 't-SNE':
-                    tsne = manifold.TSNE(n_components = 2, perplexity = 40, init = 'random')
-                    fit_method = tsne.fit_transform(X)
-                elif method == 'UMAP':
-                    reducer = UMAP(init='random')
-                    fit_method = reducer.fit_transform(X)
+                # Load the embeddings from the files
+                fit_mds = np.load(
+                    f'./big_data_embeddings/{dataset_name}_{i}_mds.npy')
+                fit_random = np.load(
+                    f'./big_data_embeddings/{dataset_name}_{i}_random.npy')
+
+                if dataset_name not in results_dict:
+                    results_dict[dataset_name] = np.array([0, 0, 0, 0])
+                results = {}
+
+                fit_method = np.load(
+                    f'./big_data_embeddings/{dataset_name}_{i}_{method}.npy')
 
                 init_stress = evaluate_scaling(X, fit_method, [1])[0]
                 min_stress = find_min_stress_exact(fit_method, X)[0]
-                shepard, _ = spearmanr(pdist(X), pdist(fit_method))
+                shepard = spearman_rho.measure(X, fit_method)['spearman_rho']
                 kruskal = compute_stress_kruskal(X, fit_method)
                 results[method] = (init_stress, min_stress, shepard, kruskal)
 
                 # MDS
-                mds = manifold.MDS(n_components=2, n_init=1, max_iter=120, n_jobs=2)
-                fit_mds = mds.fit_transform(X)
                 init_stress = evaluate_scaling(X, fit_mds, [1])[0]
                 min_stress = find_min_stress_exact(fit_mds, X)[0]
-                shepard, _ = spearmanr(pdist(X), pdist(fit_mds))
+                shepard = spearman_rho.measure(X, fit_mds)['spearman_rho']
                 kruskal = compute_stress_kruskal(X, fit_mds)
-                results['MDS'] = (init_stress, min_stress, shepard, kruskal)
+                results['mds'] = (init_stress, min_stress, shepard, kruskal)
 
                 # Random Projection
-                fit_random = np.random.uniform(0, 1, size=(X.shape[0], 2))
                 init_stress = evaluate_scaling(X, fit_random, [1])[0]
                 min_stress = find_min_stress_exact(fit_random, X)[0]
-                shepard, _ = spearmanr(pdist(X), pdist(fit_random))
+                shepard = spearman_rho.measure(X, fit_random)['spearman_rho']
                 kruskal = compute_stress_kruskal(X, fit_random)
-                results['Random'] = (init_stress, min_stress, shepard, kruskal)
+                results['random'] = (init_stress, min_stress, shepard, kruskal)
 
                 # Check if order of both stress scores and Shepard correlations agree with expected order
                 stress_init_order = sorted(
@@ -92,11 +94,12 @@ def main():
 
         df = pd.DataFrame.from_dict(results_dict, orient='index', columns=[
                                     'Initial Stress', '\"True\" Stress', 'Shepard', 'Kruskal'])
-        df.to_csv(f'../results/ground_experiment/experiment_results_{method.lower()}.csv')
+        df.to_csv(
+            f'../results/ground_experiment/experiment_results_{method}.csv')
 
         df_order = pd.DataFrame(results_order_dict)
         df_order.to_csv(
-            f'../results/ground_experiment/experiment_orderings_{method.lower()}.csv', index=False)
+            f'../results/ground_experiment/experiment_orderings_{method}.csv', index=False)
 
 
 if __name__ == "__main__":

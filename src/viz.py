@@ -99,6 +99,7 @@ def plot_embedding(low, algo, dataset, run):
     """Function that plots a single low-dimensional embedding."""
     df = pd.DataFrame(low, columns=[
                               'Component 1', 'Component 2'])
+    
     plt.figure(figsize=(8, 8))
     plt.scatter(df['Component 1'], df['Component 2'])
     plt.xlabel('Component 1')
