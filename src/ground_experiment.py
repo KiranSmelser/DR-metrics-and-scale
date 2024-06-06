@@ -1,8 +1,6 @@
 import tqdm
 import numpy as np
 import pandas as pd
-from scipy.stats import spearmanr
-from scipy.spatial.distance import pdist
 from sklearn.preprocessing import MinMaxScaler
 
 from zadu.measures import *
@@ -10,15 +8,59 @@ from datasets import *
 from stress import *
 
 
+def calculate_metrics(hd, ld):
+    # Compute the initial and minimum stress
+    init_stress = evaluate_scaling(hd, ld, [1])[0]
+    min_stress = find_min_stress_exact(ld, hd)[0]
+
+    # Compute the Shepard correlation between distances
+    shepard = spearman_rho.measure(hd, ld)['spearman_rho']
+
+    # Compute the Kruskal stress
+    kruskal = compute_stress_kruskal(hd, ld)
+
+    # Compute the trustworthiness and continuity
+    tmp = trustworthiness_continuity.measure(hd, ld)
+    trustworthiness = tmp['trustworthiness']
+    continuity = tmp['continuity']
+
+    # Compute the MRREs
+    tmp = mean_relative_rank_error.measure(hd, ld)
+    false = tmp['mrre_false']
+    missing = tmp['mrre_missing']
+
+    # Compute the neighborhood hits
+    hit = neighborhood_hit.measure(
+        hd, ld)['neighborhood_hit']
+
+    # Compute the Kullback-Leibler Divergence
+    divergence = kl_divergence.measure(
+        hd, ld)['kl_divergence']
+
+    # Compute the Pearson correlation between distances
+    corr = pearson_r.measure(hd, ld)['pearson_r']
+
+    return (init_stress, min_stress, kruskal, false, missing, divergence, shepard, trustworthiness, continuity, hit, corr)
+
+
 def main():
     methods = ['umap', 'tsne']
+
+    # Define the order of the results and their corresponding names
+    orders = ['Initial Stress', '\"True\" Stress', 'Kruskal', 'MMRE False', 'MMRE Missing',
+              'KL Divergence', 'Shepard', 'Trustworthiness', 'Continuity', 'Neighborhood Hit',
+              'Pearson']
+    reverse_orders = ['Shepard', 'Trustworthiness',
+                      'Continuity', 'Neighborhood Hit', 'Pearson']
     for method in methods:
         expected_order = ['mds', method, 'random']
         results_dict = {}
-        results_order_dict = {'Run': [], 'Dataset': [],
-                              'Initial Stress': [], '\"True\" Stress': [], 'Shepard': [], 'Kruskal': []}
 
-        for i in tqdm.tqdm(range(1)):
+        results_order_dict = {'Run': [], 'Dataset': []}
+        for order in orders:
+            results_order_dict[order] = []
+
+        for i in tqdm.tqdm(range(10)):
             datasets = ['mnist', 'fmnist', 'spambase']
 
             for dataset_name in datasets:
@@ -35,65 +77,39 @@ def main():
                     f'./big_data_embeddings/{dataset_name}_{i}_random.npy')
 
                 if dataset_name not in results_dict:
-                    results_dict[dataset_name] = np.array([0, 0, 0, 0])
+                    results_dict[dataset_name] = np.zeros(len(orders))
                 results = {}
 
                 fit_method = np.load(
                     f'./big_data_embeddings/{dataset_name}_{i}_{method}.npy')
 
-                init_stress = evaluate_scaling(X, fit_method, [1])[0]
-                min_stress = find_min_stress_exact(fit_method, X)[0]
-                shepard = spearman_rho.measure(X, fit_method)['spearman_rho']
-                kruskal = compute_stress_kruskal(X, fit_method)
-                results[method] = (init_stress, min_stress, shepard, kruskal)
+                results[method] = calculate_metrics(X, fit_method)
 
                 # MDS
-                init_stress = evaluate_scaling(X, fit_mds, [1])[0]
-                min_stress = find_min_stress_exact(fit_mds, X)[0]
-                shepard = spearman_rho.measure(X, fit_mds)['spearman_rho']
-                kruskal = compute_stress_kruskal(X, fit_mds)
-                results['mds'] = (init_stress, min_stress, shepard, kruskal)
+                results['mds'] = calculate_metrics(X, fit_mds)
 
                 # Random Projection
-                init_stress = evaluate_scaling(X, fit_random, [1])[0]
-                min_stress = find_min_stress_exact(fit_random, X)[0]
-                shepard = spearman_rho.measure(X, fit_random)['spearman_rho']
-                kruskal = compute_stress_kruskal(X, fit_random)
-                results['random'] = (init_stress, min_stress, shepard, kruskal)
+                results['random'] = calculate_metrics(X, fit_random)
 
-                # Check if order of both stress scores and Shepard correlations agree with expected order
-                stress_init_order = sorted(
-                    results, key=lambda x: results[x][0])
-                stress_min_order = sorted(
-                    results, key=lambda x: results[x][1])
-                shepard_order = sorted(
-                    results, key=lambda x: results[x][2], reverse=True)
-                kruskal_order = sorted(
-                    results, key=lambda x: results[x][3])
-                counts = np.array([0, 0, 0, 0])
-                if stress_init_order == expected_order:
-                    counts[0] += 1
-                if stress_min_order == expected_order:
-                    counts[1] += 1
-                if shepard_order == expected_order:
-                    counts[2] += 1
-                if kruskal_order == expected_order:
-                    counts[3] += 1
+                # Initialize counts
+                counts = np.zeros(len(orders))
+
+                # Check if order of quality metrics agree with expected order
+                for j, order in enumerate(orders):
+                    sorted_order = sorted(
+                        results, key=lambda x: results[x][j], reverse=order in reverse_orders)
+                    if sorted_order == expected_order:
+                        counts[j] += 1
+                    results_order_dict[order].append(', '.join(sorted_order))
 
                 # Save the orderings for each trial
                 results_order_dict['Dataset'].append(dataset_name)
                 results_order_dict['Run'].append(i + 1)
-                results_order_dict['Initial Stress'].append(
-                    ', '.join(stress_init_order))
-                results_order_dict['\"True\" Stress'].append(
-                    ', '.join(stress_min_order))
-                results_order_dict['Shepard'].append(', '.join(shepard_order))
-                results_order_dict['Kruskal'].append(', '.join(kruskal_order))
 
                 results_dict[dataset_name] += counts
 
-        df = pd.DataFrame.from_dict(results_dict, orient='index', columns=[
-                                    'Initial Stress', '\"True\" Stress', 'Shepard', 'Kruskal'])
+        df = pd.DataFrame.from_dict(
+            results_dict, orient='index', columns=orders)
         df.to_csv(
             f'../results/ground_experiment/experiment_results_{method}.csv')
 
