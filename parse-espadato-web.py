@@ -7,15 +7,8 @@ if not os.path.isdir("datasets"):
 datasetHtml = urllib.request.urlopen("https://mespadoto.github.io/proj-quant-eval/post/datasets").read()
 
 datasetHtml = str(datasetHtml)
-# htmlStr = "".join(line for line in datasetHtml)
-
-# print(datasetHtml)
-# with open("espadato-datasets.html", 'r') as fdata:
-#     htmlStr = fdata.read()
 
 datasetList = datasetHtml.split("</tr>")[1:-1]
-
- 
 
 for dataset in datasetList:
     header = "<td><a href=\"../../data"
