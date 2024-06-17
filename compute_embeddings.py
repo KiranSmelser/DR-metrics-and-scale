@@ -8,12 +8,13 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.manifold import MDS, TSNE 
 from umap import UMAP
 
+from scipy.spatial.distance import pdist,squareform
+
 class DimensionReducer():
     def __init__(self, X, labels):
         self.X = MinMaxScaler().fit_transform(X)
         self.labels = labels
-
-        self.D = pairwise_distances(self.X)
+        self.D = squareform(pdist(self.X))
 
     def compute_MDS(self):
         Y = MDS(dissimilarity="precomputed").fit_transform(self.D)
@@ -46,30 +47,40 @@ def save_embeddings(data, name, i, folder):
             np.save(f"{folder}/{name}_{i}.npy", data[0])
 
 
+def sample_down(X,num_samples):
+    return X[np.random.choice(X.shape[0], num_samples)]
+
 if __name__ == "__main__":
     import os
     if not os.path.isdir("embeddings"):
         os.mkdir('embeddings')
 
     num_iter = 10
+    size_limit = 5000
     with tqdm.tqdm(total=len(os.listdir('datasets')) * num_iter) as pbar:
 
         for datasetStr in os.listdir("datasets"):
             X = np.load(f"datasets/{datasetStr}")
+            if X.shape[0] > size_limit:
+                X = sample_down(X,size_limit)
+                os.remove(f"datasets/{datasetStr}")
+                np.save(f"datasets/{datasetStr}", X)
+                print(f"I have sampled {datasetStr} down to {size_limit} elements.")
+
             DR = DimensionReducer(X,None)
             dname = datasetStr.replace(".npy", "")
 
             for i in range(num_iter):
                 mds = DR.compute_MDS()
-                np.save(f"embeddings/{dname}-MDS-{i}.npy",mds)
+                np.save(f"embeddings/{dname}_MDS_{i}.npy",mds)
 
                 tsne = DR.compute_TSNE()
-                np.save(f"embeddings/{dname}-TSNE-{i}.npy",tsne)
+                np.save(f"embeddings/{dname}_TSNE_{i}.npy",tsne)
 
                 umap = DR.compute_UMAP()
-                np.save(f"embeddings/{dname}-UMAP-{i}.npy",umap)
+                np.save(f"embeddings/{dname}_UMAP_{i}.npy",umap)
 
                 random = DR.compute_random()
-                np.save(f"embeddings/{dname}-RANDOM-{i}.npy",random)                                    
+                np.save(f"embeddings/{dname}_RANDOM_{i}.npy",random)                                    
         
                 pbar.update(1)
