@@ -1,2 +1,3 @@
-results/
-*.npy
+datasets/
+embeddings/
+out.json
