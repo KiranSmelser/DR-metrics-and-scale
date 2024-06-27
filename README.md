@@ -1,1 +1,1 @@
-# dim-reduction-metrics-and-scale
+# DR-metrics-and-scale
