@@ -3,3 +3,4 @@ results/
 *.csv
 *.json
 *.zip
+__pycache__/
