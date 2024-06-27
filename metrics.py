@@ -36,8 +36,9 @@ class Metrics():
         Computes the non-metric stress between high dimensional distances D_high
         and low dimensional distances D_low. Invariant to scale of D_low.
         """
-        dij = self.dX
-        xij = self.dY
+
+        dij = self.dX[np.triu_indices(self.dX.shape[0], k=1)]
+        xij = self.dY[np.triu_indices(self.dY.shape[0], k=1)]
 
         # Find the indices of dij that when reordered, would sort it. Apply to both arrays
         sorted_indices = np.argsort(dij)

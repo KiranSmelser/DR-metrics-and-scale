@@ -1,2 +1,6 @@
 results/
 *.npy
+*.csv
+*.json
+*.zip
+__pycache__/
