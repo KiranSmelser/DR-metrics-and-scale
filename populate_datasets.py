@@ -1,26 +1,26 @@
+# Import necessary libraries
 import tqdm 
 from sklearn import datasets
 import seaborn as sns
 import urllib.request
+
 
 import os
 if not os.path.isdir("datasets"):
     os.mkdir("datasets")
 
 def loadEspadatoDatasets():
-
+    """
+    Function to download and save datasets from the Espadato website.
+    """
     #Grab the website with DR dataset links
     datasetHtml = str(urllib.request.urlopen("https://mespadoto.github.io/proj-quant-eval/post/datasets").read())
 
-    #I looked over the html, saw that this would get the block of links for each dataset
+    # Split the webpage content to get the block of links for each dataset
     datasetList = datasetHtml.split("</tr>")[1:-1]
 
     for dataset in tqdm.tqdm(datasetList):
-        """
-        I want to remove header from the start and tail from the end of the third element of the <tr> list
-        This gives me the dataset name; Luckily all datasets are stored on the Espadato website and have 
-        the same directory.
-        """
+        # Remove header and tail from the third element of the <tr> list to get the dataset name
         header = "<td><a href=\"../../data"
         tail = "\">X.npy</a>"
 
@@ -32,16 +32,19 @@ def loadEspadatoDatasets():
 
         data = urllib.request.urlopen(qstr)
 
-        #If we write the raw binary to file, Numpy will know how to read it later.
+        # Write the raw binary data to file, so that Numpy can read it later
         with open(f'datasets/{name}.npy', 'wb') as fdata:
             for line in data:
                 fdata.write(line)
 
 def loadSmallDatasets():
-    #Load the smaller, well known datasets
+    """
+    Function to load smaller, well-known datasets and save them locally.
+    """
     import pandas as pd
     import numpy as np
 
+    # Load iris dataset
     data = datasets.load_iris()
     df = pd.DataFrame(data.data)
     df.drop_duplicates(inplace=True)
@@ -49,11 +52,10 @@ def loadSmallDatasets():
 
     # Load wine dataset
     data = datasets.load_wine()
-    # datasets_dict['wine'] = (data.data, data.target)
     np.save("datasets/wine.npy", data.data)
 
     # Load swiss roll dataset
-    X, Y = datasets.make_swiss_roll(n_samples=1500)
+    X, _ = datasets.make_swiss_roll(n_samples=1500)
     np.save("datasets/swissroll.npy", X)
 
     # Load penguins dataset
@@ -61,7 +63,6 @@ def loadSmallDatasets():
     cols_num = ['bill_length_mm', 'bill_depth_mm',
                 'flipper_length_mm', 'body_mass_g']
     X = data[cols_num]
-    Y = data['species'].astype('category').cat.codes
     np.save("datasets/penguins.npy", X)
 
     # Load auto-mpg dataset
@@ -74,13 +75,16 @@ def loadSmallDatasets():
     data = data[data.horsepower.notnull()]
     X = data[['acceleration', 'cylinders',
                 'displacement', 'horsepower', 'weight']]
-    Y = data['mpg']
     np.save("datasets/auto-mpg.npy", X)
 
     # Load s-curve dataset
-    X, Y = datasets.make_s_curve(n_samples=1500)
+    X, _ = datasets.make_s_curve(n_samples=1500)
     np.save("datasets/s-curve.npy", X)
 
+
 if __name__ == "__main__":
+    """
+    Main function to load and save all datasets.
+    """
     loadEspadatoDatasets()
     loadSmallDatasets()
