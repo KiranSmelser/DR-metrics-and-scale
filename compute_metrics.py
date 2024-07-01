@@ -50,8 +50,6 @@ def compute_all_metrics():
                 json.dump(results,fdata,indent=4)            
                 
 
-
-
 def test_curve():
     import pylab as plt
     results = dict()
@@ -89,8 +87,6 @@ def test_curve():
             # with open("out10x.json", 'w') as fdata:
             #     json.dump(results,fdata,indent=4)            
                 
-
-
 
 if __name__ == "__main__":
     compute_all_metrics()
