@@ -2,7 +2,7 @@
 
 Repository accompanying the paper, "Normalized Stress is Not Normalized: How to Interpret Stress Correctly."
 
-## Repository Contents
+## Contents
 
 - `metrics.py`: Python module for computing various stress metrics between high-dimensional and low-dimensional data. Includes an implementation of scale-normalized stress.
 - `compute_metrics.py`: Script for computing stress metrics on dimensionality reduction (DR) results.
