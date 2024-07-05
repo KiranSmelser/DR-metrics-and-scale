@@ -7,3 +7,4 @@ __pycache__/
 datasets/
 embeddings/
 out.json
+test.ipynb
