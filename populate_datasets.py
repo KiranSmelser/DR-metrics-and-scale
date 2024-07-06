@@ -9,6 +9,7 @@ import os
 if not os.path.isdir("datasets"):
     os.mkdir("datasets")
 
+
 def loadEspadatoDatasets():
     """
     Function to download and save datasets from the Espadato website.
@@ -36,6 +37,7 @@ def loadEspadatoDatasets():
         with open(f'datasets/{name}.npy', 'wb') as fdata:
             for line in data:
                 fdata.write(line)
+
 
 def loadSmallDatasets():
     """
