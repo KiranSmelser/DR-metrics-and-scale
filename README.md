@@ -1,6 +1,7 @@
 # stress-metrics-and-scale
 
-Repository accompanying the paper, "Normalized Stress is Not Normalized: How to Interpret Stress Correctly."
+Repository accompanying the paper, "Normalized Stress is Not Normalized: How to Interpret Stress Correctly." A web-based graphical interface
+for exploring the behavior of normalized stress has also been made [available](https://kiransmelser.github.io/normalized-stress-is-not-normalized/).
 
 ## Contents
 
@@ -8,6 +9,7 @@ Repository accompanying the paper, "Normalized Stress is Not Normalized: How to 
 - `compute_metrics.py`: Script for computing stress metrics on dimensionality reduction (DR) results.
 - `populate_datasets.py`: Script to load and save all datasets used in the experiment.
 - `compute_embeddings.py`: Script for computing and saving embeddings using DR techniques for all datasets.
+- `espadato_orders.ipynb`: Jupyter notebook for comparing the normalized stress results from Espadato et al. to the scale-normalized stress results.
 - `analysis.ipynb`: Jupyter notebook for analyzing results and generating tables.
 - `viz.ipynb`: Jupyter notebook for creating the figures seen in the paper.
 - `figs/`: Folder containing the figures seen in the paper.
